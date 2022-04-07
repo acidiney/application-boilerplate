@@ -1,0 +1,18 @@
+image: node:latest
+
+services:
+  - mysql:latest
+
+cache:
+  paths:
+    - node_modules/
+
+test:
+  script:
+    - npm install
+    - npm run test
+
+# test_db:
+#  script:
+#    - npm install
+#    - node ./specs/start.js ./specs/db-postgres.spec.js
