@@ -1,18 +1,35 @@
 {
-  "name": "manoeuvre",
+  "name": "application_boilerplate",
   "version": "1.0.0",
   "description": "",
+  "author": "Acidiney Dias <acidiney.dias@ideiasdinamicas.com>",
   "main": "src/main/main.ts",
   "scripts": {
+    "prebuild": "rimraf dist",
     "prepare": "husky install",
     "start:dev": "nodemon",
-    "test": "jest --runInBand --passWithNoTests",
-    "test:coverage": "npm t -- --coverage"
+    "start": "node dist/src/main/main.js",
+    "build": "tsc && tsc-alias",
+    "start:doc": " npx @compodoc/compodoc -p tsconfig.json -s",
+    "test": "jest --runInBand --silent --passWithNoTests",
+    "test:unit": "npm t -- --watchAll -c ../application-backend/jest.unit.config.js",
+    "test:e2e": "npm t -- --watchAll -c ../application-backend/jest.integration.config.js",
+    "test:verbose": "jest --runInBand --passWithNoTests",
+    "test:coverage": "npm t -- --coverage",
+    "knex:make:migration": "knex --knexfile knexfile.ts migrate:make",
+    "knex:migration:up": "knex --knexfile knexfile.ts migrate:latest",
+    "knex:migration:down": "knex --knexfile knexfile.ts migrate:rollback"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "nestjs",
+    "mysql",
+    "mongodb",
+    "typescript",
+    "clean architecture"
+  ],
   "license": "ISC",
   "devDependencies": {
+    "@nestjs/testing": "8.4.4",
     "@commitlint/cli": "16.2.1",
     "@commitlint/config-conventional": "16.2.1",
     "@swc/jest": "0.2.20",
@@ -39,25 +56,41 @@
     "nodemon": "2.0.15",
     "supertest": "6.2.2",
     "ts-node": "10.7.0",
-    "typescript": "4.6.2"
+    "typescript": "4.6.2",
+    "module-alias-jest": "0.0.3",
+    "tsc-alias": "1.6.6"
   },
   "dependencies": {
     "@nestjs/common": "8.4.3",
     "@nestjs/core": "8.4.3",
+    "@nestjs/event-emitter": "^1.1.1",
     "@nestjs/platform-express": "8.4.4",
+    "@nestjs/swagger": "5.1.4",
+    "@sentry/node": "^7.1.1",
+    "@sentry/tracing": "^7.1.1",
     "@types/knex": "0.16.1",
     "chalk": "4.0.0",
-    "@nestjs/swagger": "5.1.4",
     "dotenv": "16.0.0",
     "express": "4.17.3",
+    "express-basic-auth": "1.2.1",
     "jsonwebtoken": "8.5.1",
     "knex": "1.0.3",
+    "knex-paginate": "^3.0.1",
     "module-alias": "2.2.2",
     "mysql": "2.18.1",
     "reflect-metadata": "0.1.13",
-    "swagger-ui-express": "4.1.6",
     "rxjs": "7.5.5",
-    "express-basic-auth": "1.2.1",
+    "swagger-ui-express": "4.1.6",
     "validator": "13.7.0"
+  },
+  "_moduleAliases": {
+    "@core": "./src/core",
+    "@domain": "./src/domain",
+    "@controllers": "./src/presentation/controllers",
+    "@interacts": "./src/interacts/",
+    "@infra": "./src/infra/"
+  },
+  "volta": {
+    "node": "16.15.1"
   }
 }

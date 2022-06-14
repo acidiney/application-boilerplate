@@ -1,35 +1,39 @@
+import 'module-alias/register'
 import 'reflect-metadata'
-import { config } from 'dotenv'
 
-import chalk from 'chalk'
 import { NestFactory } from '@nestjs/core'
 import { INestApplication, Logger } from '@nestjs/common'
-import expressBasicAuth from 'express-basic-auth'
-
-import { Env } from './config/env'
-import { MainModule } from '../framework/main.module'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 
-config()
+import chalk from 'chalk'
 
-function setupSwagger (app: INestApplication): void {
-  const APP_NAME = Env.appName
-  const APP_DESCRIPTION = Env.appDescription
+import * as Sentry from '@sentry/node'
+import * as Tracing from '@sentry/tracing'
+import expressBasicAuth from 'express-basic-auth'
 
-  const SWAGGER_ADMIN_USERNAME = Env.swagger.username
-  const SWAGGER_ADMIN_PASSWORD = Env.swagger.password
+import { Env } from '@infra/config/env'
+import * as os from 'os'
+import cluster from 'cluster'
+import { MysqlHelper } from '@infra/db/mysql/init'
+
+function setupSwagger (app: INestApplication, env: typeof Env): void {
+  const APP_NAME = env.appName
+  const APP_DESCRIPTION = env.appDescription
+
+  const SWAGGER_ADMIN_USERNAME = env.swagger.username
+  const SWAGGER_ADMIN_PASSWORD = env.swagger.password
 
   const options = new DocumentBuilder()
     .setTitle(APP_NAME)
     .setDescription(APP_DESCRIPTION)
-    .setVersion('v1')
+    .setVersion(env.appVersion)
     .build()
 
   const document = SwaggerModule.createDocument(app, options)
 
-  if (Env.isProd) {
+  if (env.isProd) {
     app.use(
-      '/',
+      '/docs',
       expressBasicAuth({
         users: {
           [SWAGGER_ADMIN_USERNAME]: SWAGGER_ADMIN_PASSWORD
@@ -39,42 +43,71 @@ function setupSwagger (app: INestApplication): void {
     )
   }
 
-  SwaggerModule.setup('/', app, document)
   SwaggerModule.setup('/docs', app, document)
 
-  Logger.log('Mapped {/, GET} Swagger api route', 'RouterExplorer')
   Logger.log('Mapped {/docs, GET} Swagger api route', 'RouterExplorer')
 }
 
-async function bootstrap (): Promise<void> {
+function setupSentry (app: INestApplication, env: typeof Env): void {
+  Sentry.init({
+    dsn: env.sentryDNS,
+    tracesSampleRate: 1.0,
+    integrations: [
+      new Sentry.Integrations.Http({ tracing: true }),
+      new Tracing.Integrations.Mongo({
+        useMongoose: true
+      })
+    ]
+  })
+}
+
+async function setupApplication (env: typeof Env): Promise<void> {
+  const { MainModule } = await import('./framework/main.module')
+
   try {
+    await MysqlHelper.setup({ info: Logger.log })
+
     const app: INestApplication = await NestFactory.create(MainModule, {
       cors: true
     })
 
-    setupSwagger(app)
+    setupSwagger(app, env)
+    setupSentry(app, env)
 
-    await app.listen(Env.port)
+    await app.listen(env.port)
 
-    if (Env.isProd) {
-      Logger.log(
-        `🚀  Server is listening on port ${chalk
-          .hex('#87e8de')
-          .bold(`${Env.port}`)}`,
-        'Bootstrap',
-        false
-      )
-      return
-    }
     Logger.log(
-      `🚀  Server ready at https://${Env.host}:${chalk
+      `🚀  Server ready at ${env.httpProtocol}://${Env.host}:${chalk
         .hex('#87e8de')
-        .bold(`${Env.port}`)}`,
+        .bold(`${env.port}`)}`,
       'Bootstrap',
       false
     )
   } catch (error) {
     Logger.error(error, 'Bootstrap')
+  }
+}
+
+async function bootstrap (): Promise<void> {
+  const { Env } = await import('../infra/config/env')
+
+  const totalCPUs = Env.isDev ? 1 : os.cpus().length
+
+  if (cluster.isMaster || cluster.isPrimary) {
+    console.log(`Number of CPUs is ${totalCPUs}`)
+    console.log(`Master ${process.pid} is running`)
+
+    for (let i = 0; i < totalCPUs; i++) {
+      cluster.fork()
+    }
+
+    cluster.on('exit', (worker, code, signal) => {
+      console.log(`worker ${worker.process.pid} died`)
+      console.log("Let's fork another worker!")
+      cluster.fork()
+    })
+  } else {
+    await setupApplication(Env)
   }
 }
 

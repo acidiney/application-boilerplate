@@ -42,7 +42,7 @@ export class Result<T> {
   }
 
   public errorMessage (): string {
-    return this.error.message
+    return (this.error as any).message
   }
 
   public static ok<U>(value?: U): Result<U> {
