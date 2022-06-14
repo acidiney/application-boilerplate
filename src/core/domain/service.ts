@@ -1,3 +1,3 @@
-export interface Service<O> {
-  perform: () => Promise<O>
+export interface Service<I, O> {
+  perform: (input: I) => Promise<O>
 }

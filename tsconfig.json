@@ -5,14 +5,20 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "outDir": "./dist",
     "module": "commonjs",
     "target": "es2019",
-    "baseUrl": "./",
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowJs": true,
-    "incremental": true
+    "incremental": true,
+    "paths": {
+      "@core/*": ["./src/core/*"],
+      "@domain/*": ["./src/domain/*"],
+      "@controllers/*": ["./src/presentation/controllers/*"],
+      "@interacts/*": ["./src/interacts/*"],
+      "@infra/*": ["./src/infra/*"]
+    }
   },
 }

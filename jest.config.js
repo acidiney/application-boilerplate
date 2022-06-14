@@ -1,3 +1,6 @@
+require('reflect-metadata')
+const aliases = require('module-alias-jest/register')
+
 module.exports = {
   roots: ['<rootDir>/src'],
   collectCoverageFrom: [
@@ -8,5 +11,6 @@ module.exports = {
   testEnvironment: 'node',
   transform: {
     '^.+\\.(t|j)sx?$': ['@swc/jest']
-  }
+  },
+  moduleNameMapper: aliases.jest
 }

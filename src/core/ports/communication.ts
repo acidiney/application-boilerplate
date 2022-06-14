@@ -6,11 +6,13 @@ export interface Auth {
 
 export interface Input<Body> {
   body?: Body
-  params?: any
-  auth?: Auth
 }
 
-export interface Output {
+export interface Output<Body> {
   statusCode: number
-  body: any
+  body: Body
+}
+
+export interface Http {
+  post: <B, O, H>(url: string, body: B, headers?: H[]) => Promise<O>
 }
