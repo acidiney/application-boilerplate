@@ -27,7 +27,7 @@
     "typescript",
     "clean architecture"
   ],
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@nestjs/testing": "8.4.4",
     "@commitlint/cli": "16.2.1",
