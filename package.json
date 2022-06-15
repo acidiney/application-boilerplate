@@ -2,7 +2,7 @@
   "name": "application_boilerplate",
   "version": "1.0.0",
   "description": "",
-  "author": "Acidiney Dias <acidiney.dias@ideiasdinamicas.com>",
+  "author": "Acidiney Dias <acidineydias@gmail.com>",
   "main": "src/main/main.ts",
   "scripts": {
     "prebuild": "rimraf dist",
