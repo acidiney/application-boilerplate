@@ -17,7 +17,7 @@
       "@core/*": ["./src/core/*"],
       "@domain/*": ["./src/domain/*"],
       "@controllers/*": ["./src/presentation/controllers/*"],
-      "@interacts/*": ["./src/interacts/*"],
+      "@implementations/*": ["./src/implementations/*"],
       "@infra/*": ["./src/infra/*"]
     }
   },
